@@ -1,0 +1,3 @@
+[submodule "TravelMemory"]
+	path = TravelMemory
+	url = https://github.com/UnpredictablePrashant/TravelMemory.git
