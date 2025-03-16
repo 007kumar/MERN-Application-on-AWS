@@ -1,0 +1,37 @@
+- name: Deploy MERN Application
+  hosts: web
+  become: yes
+  tasks:
+    - name: Set up environment variables
+      copy:
+        dest: /home/ubuntu/TravelMemory/backend/.env
+        content: |
+          MONGO_URI='mongodb+srv://ShivBatch8:Mongopass1@shiv.bh0ao.mongodb.net/travelmemory?retryWrites=true&w=majority'
+          JWT_SECRET=your_jwt_secret
+          NODE_ENV=production
+
+    - name: Install backend dependencies
+      command: npm install
+      args:
+        chdir: /home/ubuntu/TravelMemory/backend
+
+    - name: Start the backend server
+      shell: "nohup npm start &"
+      args:
+        chdir: /home/ubuntu/TravelMemory/backend
+
+    - name: Install frontend dependencies
+      command: npm install
+      args:
+        chdir: /home/ubuntu/TravelMemory/frontend
+
+    - name: Build frontend
+      command: npm run build
+      args:
+        chdir: /home/ubuntu/TravelMemory/frontend
+
+    - name: Serve frontend
+      shell: "nohup serve -s build -l 3000 &"
+      args:
+        chdir: /home/ubuntu/TravelMemory/frontend
+

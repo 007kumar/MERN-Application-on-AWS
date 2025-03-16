@@ -1,0 +1,19 @@
+- name: Setup MongoDB Server
+  hosts: db
+  become: yes
+  tasks:
+    - name: Update package list
+      apt:
+        update_cache: yes
+
+    - name: Install MongoDB
+      apt:
+        name: mongodb
+        state: present
+
+    - name: Start MongoDB service
+      service:
+        name: mongodb
+        state: started
+        enabled: true
+

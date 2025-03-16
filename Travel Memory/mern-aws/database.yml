@@ -1,0 +1,80 @@
+- name: Setup Database Server
+  hosts: db
+  become: true
+  tasks:
+    - name: Add MongoDB repository
+      ansible.builtin.shell: |
+        curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo tee /usr/share/keyrings/mongodb-server-key.asc
+        echo "deb [signed-by=/usr/share/keyrings/mongodb-server-key.asc] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+      args:
+        executable: /bin/bash
+
+    - name: Install pymongo using APT
+      ansible.builtin.apt:
+        name: python3-pymongo
+        state: present
+    - name: Ensure Python venv is installed
+      ansible.builtin.apt:
+        name: python3-venv
+        state: present
+
+    - name: Create a virtual environment
+      ansible.builtin.command:
+        cmd: python3 -m venv /home/ubuntu/venv
+        creates: /home/ubuntu/venv
+
+    - name: Upgrade pip and install dependencies inside virtual environment
+      ansible.builtin.command:
+        cmd: /home/ubuntu/venv/bin/pip install --upgrade pip setuptools wheel packaging
+
+    - name: Install pymongo inside virtual environment
+      ansible.builtin.pip:
+        name: pymongo
+        virtualenv: /home/ubuntu/venv
+
+    - name: Create MongoDB admin user
+      community.mongodb.mongodb_user:
+        login_host: 127.0.0.1  # Avoid using 'localhost' in some cases
+        login_port: 27017
+        login_user: admin
+        login_password: adminpassword
+        name: myAdmin
+        password: mypassword
+        roles: readWrite
+        database: admin
+        state: present
+      vars:
+        ansible_python_interpreter: /home/ubuntu/venv/bin/python
+
+    - name: Update package cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install MongoDB
+      ansible.builtin.apt:
+        name: mongodb-org
+        state: present
+
+    - name: Start and enable MongoDB service
+      ansible.builtin.systemd:
+        name: mongod
+        state: started
+        enabled: yes
+
+    - name: Allow remote access in MongoDB config
+      ansible.builtin.lineinfile:
+        path: /etc/mongod.conf
+        regexp: '^  bindIp: '
+        line: '  bindIp: 0.0.0.0'
+        state: present
+
+    - name: Restart MongoDB to apply changes
+      ansible.builtin.systemd:
+        name: mongod
+        state: restarted
+
+    - name: Start Backend Node.js app
+      command: npm run start
+      args:
+        chdir: /home/ubuntu/TravelMemory/backend
+

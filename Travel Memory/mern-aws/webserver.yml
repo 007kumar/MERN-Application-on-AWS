@@ -1,0 +1,40 @@
+- name: Setup Web Server
+  hosts: web
+  become: yes
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: ["nodejs", "npm"]
+        state: present
+
+    - name: Clone the MERN repository
+      git:
+        repo: "https://github.com/UnpredictablePrashant/TravelMemory.git"
+        dest: "/home/ubuntu/TravelMemory"
+        force: yes  # Ensures the latest code is always pulled
+
+    - name: Install backend dependencies
+      command: npm install
+      args:
+        chdir: "/home/ubuntu/TravelMemory/backend"
+
+    - name: Install frontend dependencies
+      command: npm install
+      args:
+        chdir: "/home/ubuntu/TravelMemory/frontend"
+
+    - name: Start Backend Node.js app
+      command: npm start
+      args:
+        chdir: "/home/ubuntu/TravelMemory/backend"
+
+    - name: Start Frontend React App
+      command: npm start
+      args:
+        chdir: "/home/ubuntu/TravelMemory/frontend"
+
+    - name: Start Backend Node.js app
+      command: npm run start
+      args:
+        chdir: /home/ubuntu/TravelMemory/backend
+

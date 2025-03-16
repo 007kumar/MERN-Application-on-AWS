@@ -1,0 +1,23 @@
+- hosts: web
+  become: yes
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: ["nodejs", "npm"]
+        state: present
+
+    - name: Clone the MERN repository
+      git:
+        repo: "https://github.com/UnpredictablePrashant/TravelMemory.git"
+        dest: "/home/skumar/AWS_Automation/TravelMemory"
+
+    - name: Install app dependencies
+      command: npm install
+      args:
+        chdir: "/home/skumar/AWS_Automation/TravelMemory/backend"
+
+    - name: Start Node.js app
+      command: npm start
+      args:
+        chdir: "/home/skumar/AWS_Automation/TravelMemory/backend"
+

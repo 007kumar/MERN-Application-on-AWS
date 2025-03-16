@@ -1,0 +1,29 @@
+- name: Secure EC2 Instances
+  hosts: all
+  become: yes
+  tasks:
+    - name: Allow only SSH, HTTP, and MongoDB access
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - "22"
+        - "80"
+        - "27017"
+
+    - name: Enable UFW
+      command: ufw enable
+      ignore_errors: yes
+
+    - name: Disable Root Login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+
+    - name: Restart SSH
+      service:
+        name: ssh
+        state: restarted
+
